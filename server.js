@@ -3,10 +3,13 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const db = require('./_helpers/db');
+const authorize = require('./_middleware/authorize');
+const errorHandler = require('./_middleware/error-handler');
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json()); // Body parser for JSON
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(cookieParser());
