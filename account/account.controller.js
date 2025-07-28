@@ -22,7 +22,7 @@ function authenticate(req, res, next) {
 
 function register(req, res, next) {
     accountService.register(req.body)
-        .then(account => res.json(account))
+        .then(account => res.status(201).json(account))
         .catch(err => res.status(400).json({ message: err.toString() }));
 }
 
@@ -34,7 +34,7 @@ function getAll(req, res, next) {
 
 function getById(req, res, next) {
     accountService.getById(req.params.id)
-        .then(account => account ? res.json(account) : res.sendStatus(404))
+        .then(account => account ? res.json(account) : res.status(404).json({ message: 'Account not found' }))
         .catch(next);
 }
 
@@ -46,7 +46,7 @@ function update(req, res, next) {
 
 function _delete(req, res, next) {
     accountService.delete(req.params.id)
-        .then(() => res.json({ message: 'Account deleted' }))
+        .then(() => res.status(204).send())
         .catch(err => res.status(400).json({ message: err.toString() }));
 }
 

@@ -11,13 +11,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(cookieParser());
 
-// Account routes
+// Accountsshish
 app.use('/api/accounts', require('./account/account.controller'));
+
+// Bookinggyat
+app.use('/api/bookings', require('./booking/booking.controller'));
+app.use('/api/rooms', require('./booking/room.controller'));
 
 // Start server after DB sync
 const port = process.env.PORT || 4000;
+db.initialize().then(() => {
 db.sequelize.sync({ alter: true }).then(() => {
     app.listen(port, () => {
         console.log('Server listening on port ' + port);
     });
+});
 });

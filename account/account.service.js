@@ -18,12 +18,12 @@ module.exports = {
     revokeToken
 };
 
-async function authenticate({ email, username, password, ipAddress }) {
-    // Allow login by email or username (title)
-    const where = email ? { email } : { title: username };
-    const account = await Account.findOne({ where });
-    if (!account || !bcrypt.compareSync(password, account.password) || account.status !== 'Active') {
-        throw 'Email or password is incorrect or account not active';
+async function authenticate({ email, password }) {
+    const account = await Account.findOne({ where: { email } });
+    console.log('Account found:', account);
+    console.log('Comparing:', account?.passwordHash, password);
+    if (!account || account.passwordHash !== password) {
+        throw 'Email or password is incorrect';
     }
     // Generate JWT token
     const jwtToken = generateJwtToken(account);
