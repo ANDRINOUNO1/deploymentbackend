@@ -1,6 +1,6 @@
-const config = require('config.json');
+const config = require('../config.json');
 const mysql = require('mysql2/promise');
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 
 module.exports = db = {};
 
@@ -18,10 +18,23 @@ async function initialize() {
     db.Sequelize = Sequelize;
 
     // Models
-    db.Account = require('../account/account.model');
+    db.Account = require('../account/account.model')(sequelize, DataTypes);
     db.RefreshToken = require('../account/refresh-token.model')(sequelize);
+    db.Booking = require('../booking/booking.model')(sequelize, DataTypes);
+    db.Room = require('../booking/room.model')(sequelize, DataTypes);
 
     // Associations
     db.Account.hasMany(db.RefreshToken, { foreignKey: 'accountId' });
     db.RefreshToken.belongsTo(db.Account, { foreignKey: 'accountId' });
+    // Add more associations as needed
+
+    // 3 accs
+    await sequelize.sync({ alter: true });
+    await db.Account.seedDefaults();
+
+    // Bookinggyat
+    db.Booking.belongsTo(db.Room, { foreignKey: 'room_id' });
+    db.Room.hasMany(db.Booking, { foreignKey: 'room_id' });
 }
+
+module.exports.initialize = initialize;
