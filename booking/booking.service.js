@@ -1,8 +1,8 @@
 const db = require('../_helpers/db');
 const Booking = require('./booking.model');
-const Room = require('../booking/room.model'); // Will create this next
+const Room = require('../booking/room.model'); 
 
-const RESERVATION_FEE = 50; // Match frontend
+const RESERVATION_FEE = 50; 
 
 module.exports = {
     createBooking,
