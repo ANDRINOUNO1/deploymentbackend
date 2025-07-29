@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     const attributes = {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         roomNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
-        roomType: { type: DataTypes.STRING, allowNull: false },
+        roomTypeId: { type: DataTypes.INTEGER, allowNull: false },
         price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
         isAvailable: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true }
     };

@@ -36,6 +36,10 @@ function authorize(roles = []) {
                 console.error('Authorization error:', error);
                 return res.status(500).json({ message: 'Internal Server Error' });
             }
+        },
+        (req, res, next) => {
+            console.log('Authorize middleware user:', req.user);
+            next();
         }
     ];
 } 

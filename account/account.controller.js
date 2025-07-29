@@ -34,6 +34,7 @@ function register(req, res, next) {
 }
 
 function getAll(req, res, next) {
+    console.log('User making request:', req.user); 
     const status = req.query.status;
     accountService.getAll(status)
         .then(accounts => res.json(accounts))

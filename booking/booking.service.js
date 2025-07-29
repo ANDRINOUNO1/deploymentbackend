@@ -1,6 +1,6 @@
 const db = require('../_helpers/db');
-const Booking = require('./booking.model');
-const Room = require('../booking/room.model'); 
+const Booking = db.Booking;
+const Room = db.Room; 
 
 const RESERVATION_FEE = 50; 
 
@@ -90,7 +90,7 @@ async function createBooking(nestedBooking) {
 
     // Find available rooms
     const availableRooms = await Room.findAll({
-        where: { room_type_id: nestedBooking.roomTypeId, status: true },
+        where: { roomTypeId: nestedBooking.roomTypeId, isAvailable: true },
         limit: flatBooking.rooms || 1
     });
     if (availableRooms.length < (flatBooking.rooms || 1)) {
