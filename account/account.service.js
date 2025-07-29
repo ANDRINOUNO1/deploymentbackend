@@ -19,7 +19,7 @@ module.exports = {
 };
 
 async function authenticate({ email, password, ipAddress }) {
-    // FIX: Use db.Account directly
+
     const account = await db.Account.scope('withHash').findOne({ where: { email } });
 
     if (!account) {
@@ -46,7 +46,7 @@ async function authenticate({ email, password, ipAddress }) {
 }
 
 async function register(params) {
-    // FIX: Use db.Account directly
+
     if (await db.Account.findOne({ where: { email: params.email } })) {
         throw 'Email "' + params.email + '" is already registered';
     }
@@ -59,7 +59,7 @@ async function register(params) {
 }
 
 async function getAll(status) {
-    // Use db.Account directly
+
     if (status) {
         return await db.Account.findAll({ where: { status } });
     } else {
@@ -68,7 +68,7 @@ async function getAll(status) {
 }
 
 async function getById(id) {
-    // FIX: Use db.Account directly
+
     const account = await db.Account.findByPk(id);
     if (!account) throw 'Account not found';
     return basicDetails(account);
