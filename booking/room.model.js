@@ -1,13 +1,17 @@
+// DataTypes is now passed in as the second argument
 module.exports = (sequelize, DataTypes) => {
-    const Room = sequelize.define('Room', {
-        id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        room_number: { type: DataTypes.INTEGER, allowNull: false },
-        room_type_id: { type: DataTypes.INTEGER, allowNull: false },
-        floor: { type: DataTypes.INTEGER, allowNull: false },
-        status: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true }
-    }, {
+    const attributes = {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        roomNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+        roomTypeId: { type: DataTypes.INTEGER, allowNull: false },
+        price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+        isAvailable: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true }
+    };
+
+    const options = {
         timestamps: false,
         tableName: 'Rooms'
-    });
-    return Room;
+    };
+
+    return sequelize.define('Room', attributes, options);
 };

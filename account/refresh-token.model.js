@@ -1,6 +1,5 @@
-const { DataTypes } = require('sequelize');
-
-module.exports = (sequelize) => {
+// DataTypes is now passed in as the second argument
+module.exports = (sequelize, DataTypes) => {
     const attributes = {
         token: { type: DataTypes.STRING },
         expires: { type: DataTypes.DATE },
@@ -24,4 +23,4 @@ module.exports = (sequelize) => {
     };
 
     return sequelize.define('RefreshToken', attributes, options);
-}; 
+};

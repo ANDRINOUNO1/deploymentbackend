@@ -5,6 +5,7 @@
       "user": "root",
       "password": "1234",
       "database": "hotelcapstone2"
-    }
+    },
+    "secret": "your_jwt_secret_key  ",
+    "jwtExpiration": 3600
 }
-  

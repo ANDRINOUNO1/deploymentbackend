@@ -1,6 +1,7 @@
-const { DataTypes } = require("sequelize");
+const bcrypt = require('bcryptjs');
 
-module.exports = (sequelize) => {
+// DataTypes is now passed in as the second argument
+module.exports = (sequelize, DataTypes) => {
     const attributes = {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         title: { type: DataTypes.STRING, allowNull: true },
@@ -16,12 +17,17 @@ module.exports = (sequelize) => {
 
     const options = {
         timestamps: false,
-        tableName: 'Accounts'
+        tableName: 'Accounts',
+        defaultScope: {
+            attributes: { exclude: ['passwordHash'] }
+        },
+        scopes: {
+            withHash: { attributes: {}, }
+        }
     };
 
     const Account = sequelize.define('Account', attributes, options);
-
-    // static users for testing 
+    
     Account.seedDefaults = async function() {
         const defaults = [
             {
@@ -31,7 +37,7 @@ module.exports = (sequelize) => {
                 email: 'superadmin@example.com',
                 status: 'Active',
                 role: 'SuperAdmin',
-                passwordHash: 'superadmin123'
+                password: 'superadmin123'
             },
             {
                 title: 'admin',
@@ -40,7 +46,7 @@ module.exports = (sequelize) => {
                 email: 'admin@example.com',
                 status: 'Active',
                 role: 'Admin',
-                passwordHash: 'admin123'
+                password: 'admin123'
             },
             {
                 title: 'frontdesk',
@@ -49,13 +55,21 @@ module.exports = (sequelize) => {
                 email: 'frontdesk@example.com',
                 status: 'Active',
                 role: 'frontdeskUser',
-                passwordHash: 'frontdesk123'
+                password: 'frontdesk123'
             }
         ];
         for (const user of defaults) {
-            await Account.findOrCreate({ where: { email: user.email }, defaults: user });
+            const hashedPassword = bcrypt.hashSync(user.password, 10);
+            const { password, ...userWithoutPassword } = user;
+            await Account.findOrCreate({
+                where: { email: user.email },
+                defaults: { 
+                    ...userWithoutPassword, 
+                    passwordHash: hashedPassword
+                }
+            });
         }
     };
 
     return Account;
-};   
+};
