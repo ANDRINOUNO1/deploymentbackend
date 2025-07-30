@@ -3,7 +3,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../_helpers/db');
 const Room = db.Room;
-const RoomType = db.RoomType; 
+const RoomType = db.RoomType;
+const ReservationFee = db.ReservationFee; 
 
 // GET all rooms
 router.get('/', async (req, res) => {
@@ -21,7 +22,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET all room types (for frontend availability component)
 router.get('/types', async (req, res) => {
     try {
         const roomTypes = await RoomType.findAll({
@@ -33,7 +33,31 @@ router.get('/types', async (req, res) => {
     }
 });
 
-// GET available rooms by type (for reservation system)
+
+router.put('/types/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rate, type, description } = req.body;
+        
+        const roomType = await RoomType.findByPk(id);
+        if (!roomType) {
+            return res.status(404).json({ message: 'Room type not found' });
+        }
+        
+        const updateData = {};
+        if (rate !== undefined) updateData.basePrice = rate;
+        if (type !== undefined) updateData.type = type;
+        if (description !== undefined) updateData.description = description;
+        
+        await roomType.update(updateData);
+        
+        res.json(roomType);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+
 router.get('/available/:type', async (req, res) => {
     try {
         const { type } = req.params;
@@ -54,7 +78,7 @@ router.get('/available/:type', async (req, res) => {
     }
 });
 
-// GET room statistics (for dashboard)
+
 router.get('/stats', async (req, res) => {
     try {
         const totalRooms = await Room.count();
@@ -78,7 +102,7 @@ router.get('/stats', async (req, res) => {
             roomTypes: {}
         };
         
-        // Group by room type
+        
         roomTypeStats.forEach(room => {
             const type = room.RoomType.type;
             if (!stats.roomTypes[type]) {
@@ -100,6 +124,53 @@ router.get('/stats', async (req, res) => {
         res.json(stats);
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+});
+
+// GET
+router.get('/reservation-fee', async (req, res) => {
+    try {
+        const reservationFee = await ReservationFee.findOne({
+            where: { isActive: true },
+            order: [['createdAt', 'DESC']]
+        });
+        
+        if (!reservationFee) {
+            return res.status(404).json({ message: 'No active reservation fee found' });
+        }
+        
+        res.json({ fee: parseFloat(reservationFee.fee) });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.put('/reservation-fee', async (req, res) => {
+    try {
+        const { fee } = req.body;
+        
+        if (fee === undefined || fee < 0) {
+            return res.status(400).json({ message: 'Valid fee amount is required' });
+        }
+        
+        let reservationFee = await ReservationFee.findOne({
+            where: { isActive: true },
+            order: [['createdAt', 'DESC']]
+        });
+        
+        if (reservationFee) {
+            await reservationFee.update({ fee: fee });
+        } else {
+            reservationFee = await ReservationFee.create({
+                fee: fee,
+                description: 'Updated reservation fee',
+                isActive: true
+            });
+        }
+        
+        res.json({ fee: parseFloat(reservationFee.fee) });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
 });
 
@@ -141,7 +212,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// PUT update room availability (for booking system)
+// PUT update room availability 
 router.put('/:id/availability', async (req, res) => {
     try {
         const { id } = req.params;
@@ -173,7 +244,7 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// POST bulk update room availability (for admin)
+// POST bulk 
 router.post('/bulk-availability', async (req, res) => {
     try {
         const { roomIds, isAvailable } = req.body;
@@ -199,4 +270,22 @@ router.post('/bulk-availability', async (req, res) => {
     }
 });
 
-module.exports = router;
+
+
+
+const getCurrentReservationFee = async () => {
+    try {
+        const reservationFee = await ReservationFee.findOne({
+            where: { isActive: true },
+            order: [['createdAt', 'DESC']]
+        });
+        
+        return reservationFee ? parseFloat(reservationFee.fee) : 500; 
+    } catch (err) {
+        console.error('Error getting reservation fee:', err);
+        return 500; 
+    }
+};
+
+
+module.exports = { router, getCurrentReservationFee };

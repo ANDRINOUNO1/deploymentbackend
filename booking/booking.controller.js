@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const bookingService = require('./booking.service');
+const emailService = require('../_helpers/email.service');
 
 //api/bookings
 router.post('/', async (req, res) => {
     try {
         const bookings = await bookingService.createBooking(req.body);
+        console.log('📝 Booking created with room_id:', bookings[0]?.room_id);
         res.status(201).json(bookings);
     } catch (err) {
         res.status(400).json({ message: err.message });
@@ -51,6 +53,46 @@ router.delete('/:id', async (req, res) => {
         if (!deleted) return res.status(404).json({ message: 'Booking not found' });
         res.status(204).send();
     } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
+
+// Debug email configuration endpoint
+router.get('/debug-email-config', async (req, res) => {
+    try {
+        emailService.checkEmailConfig();
+        res.json({ 
+            message: 'Email configuration logged to console',
+            emailUser: process.env.EMAIL_USER || 'your-email@gmail.com',
+            emailPasswordSet: !!process.env.EMAIL_PASSWORD
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Send payment confirmation email endpoint
+router.post('/send-payment-confirmation', async (req, res) => {
+    try {
+        const { bookingId, guestEmail, guestName, paymentAmount, paymentMethod } = req.body;
+    
+        const booking = await bookingService.getBookingById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+ 
+        const result = await emailService.sendPaymentConfirmation(booking, guestEmail);
+        
+        res.json({ 
+            success: result.success, 
+            message: result.success ? 'Payment confirmation email sent successfully' : 'Failed to send payment confirmation email',
+            error: result.error
+        });
+    } catch (err) {
+        console.error('Payment confirmation email error:', err);
         res.status(500).json({ message: err.message });
     }
 });
