@@ -15,29 +15,29 @@ module.exports = {
 // --- Mapping functions ---
 function flattenBooking(nested) {
     return {
-        // Guest
+    
         guest_firstName: nested.guest?.first_name || nested.guest?.firstName || '',
         guest_lastName: nested.guest?.last_name || nested.guest?.lastName || '',
         guest_email: nested.guest?.email || '',
         guest_phone: nested.guest?.phone || '',
         guest_address: nested.guest?.address || '',
         guest_city: nested.guest?.city || '',
-        // Availability
+   
         checkIn: nested.availability?.checkIn || '',
         checkOut: nested.availability?.checkOut || '',
         adults: nested.availability?.adults || 0,
         children: nested.availability?.children || 0,
         rooms: nested.availability?.rooms || 1,
-        // Payment
+ 
         paymentMode: nested.payment?.paymentMode || '',
         paymentMethod: nested.payment?.paymentMethod || '',
         amount: nested.payment?.amount || 0,
         cardNumber: nested.payment?.cardNumber || '',
         expiry: nested.payment?.expiry || '',
         cvv: nested.payment?.cvv || '',
-        // Room reference
+  
         room_id: nested.room_id,
-        // Other fields
+       
         pay_status: nested.pay_status,
         created_at: nested.created_at,
         updated_at: nested.updated_at,
