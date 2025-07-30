@@ -1,18 +1,18 @@
-// booking/room.controller.js
+
 const express = require('express');
 const router = express.Router();
 const db = require('../_helpers/db');
 const Room = db.Room;
-const RoomType = db.RoomType; // Import RoomType model
+const RoomType = db.RoomType; 
 
 // GET all rooms
 router.get('/', async (req, res) => {
     try {
-        // Include the RoomType model to fetch associated room type data
+        
         const rooms = await Room.findAll({
             include: {
                 model: RoomType,
-                attributes: ['type'] // Only fetch the 'type' attribute from RoomType
+                attributes: ['type'] 
             }
         });
         res.json(rooms);
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
 // GET room by id
 router.get('/:id', async (req, res) => {
     try {
-        // Include the RoomType model when fetching a single room
+      
         const room = await Room.findByPk(req.params.id, {
             include: {
                 model: RoomType,
