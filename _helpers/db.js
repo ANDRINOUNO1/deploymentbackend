@@ -26,8 +26,8 @@ db.initialize = async function() {
         db.Account = require('../account/account.model')(sequelize, DataTypes);
         db.RefreshToken = require('../account/refresh-token.model')(sequelize, DataTypes);
         db.Booking = require('../booking/booking.model')(sequelize, DataTypes);
-        db.Room = require('../booking/room.model')(sequelize, DataTypes);
-        db.RoomType = require('../booking/room-type.model')(sequelize); 
+        db.Room = require('../rooms/room.model')(sequelize, DataTypes);
+        db.RoomType = require('../rooms/room-type.model')(sequelize); 
 
         // define relationships
         db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE', foreignKey: 'accountId' });
@@ -52,6 +52,19 @@ db.initialize = async function() {
         if (userCount === 0) {
             await db.Account.seedDefaults();
             console.log('Default users have been seeded.');
+        }
+
+        // Seed room types and rooms if they don't exist
+        const roomTypeCount = await db.RoomType.count();
+        if (roomTypeCount === 0) {
+            await db.RoomType.seedDefaults();
+            console.log('Default room types have been seeded.');
+        }
+
+        const roomCount = await db.Room.count();
+        if (roomCount === 0) {
+            await db.Room.seedDefaults();
+            console.log('Default rooms have been seeded.');
         }
 
         db.sequelize = sequelize;
