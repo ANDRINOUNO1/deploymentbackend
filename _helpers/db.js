@@ -27,7 +27,8 @@ db.initialize = async function() {
         db.RefreshToken = require('../account/refresh-token.model')(sequelize, DataTypes);
         db.Booking = require('../booking/booking.model')(sequelize, DataTypes);
         db.Room = require('../rooms/room.model')(sequelize, DataTypes);
-        db.RoomType = require('../rooms/room-type.model')(sequelize); 
+        db.RoomType = require('../rooms/room-type.model')(sequelize);
+        db.ReservationFee = require('../rooms/reservation-fee.model')(sequelize); 
 
         // define relationships
         db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE', foreignKey: 'accountId' });
@@ -44,7 +45,7 @@ db.initialize = async function() {
         db.Room.belongsTo(db.RoomType, { foreignKey: 'roomTypeId' });
 
 
-        await sequelize.sync({ alter: true });
+        await sequelize.sync({ force: false });
         console.log('Database synchronized successfully');
 
 
@@ -65,6 +66,13 @@ db.initialize = async function() {
         if (roomCount === 0) {
             await db.Room.seedDefaults();
             console.log('Default rooms have been seeded.');
+        }
+
+        // Seed reservation fee if it doesn't exist
+        const reservationFeeCount = await db.ReservationFee.count();
+        if (reservationFeeCount === 0) {
+            await db.ReservationFee.seedDefaults();
+            console.log('Default reservation fee has been seeded.');
         }
 
         db.sequelize = sequelize;

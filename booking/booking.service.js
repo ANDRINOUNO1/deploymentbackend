@@ -1,6 +1,8 @@
 const db = require('../_helpers/db');
 const Booking = db.Booking;
 const Room = db.Room; 
+const emailService = require('../_helpers/email.service');
+const { Op } = require('sequelize');
 
 const RESERVATION_FEE = 50; 
 
@@ -38,11 +40,11 @@ function flattenBooking(nested) {
   
         room_id: nested.room_id,
        
-        pay_status: nested.pay_status,
-        created_at: nested.created_at,
-        updated_at: nested.updated_at,
-        requests: nested.requests,
-        paidamount: nested.paidamount
+        pay_status: nested.pay_status || false, // Default to false (pending)
+        created_at: nested.created_at || new Date(),
+        updated_at: nested.updated_at || new Date(),
+        requests: nested.requests || '',
+        paidamount: nested.paidamount || nested.payment?.amount || 0 // Use payment amount as default
     };
 }
 
@@ -84,15 +86,26 @@ function nestBooking(flat) {
 // --- Service functions ---
 async function createBooking(nestedBooking) {
     const flatBooking = flattenBooking(nestedBooking);
-    if (!flatBooking.amount || flatBooking.amount < RESERVATION_FEE) {
-        throw new Error(`Payment amount must be at least $${RESERVATION_FEE}.`);
+    
+    // Get current reservation fee from database
+    const ReservationFee = db.ReservationFee;
+    const reservationFee = await ReservationFee.findOne({
+        where: { isActive: true },
+        order: [['createdAt', 'DESC']]
+    });
+    const currentReservationFee = reservationFee ? parseFloat(reservationFee.fee) : RESERVATION_FEE;
+    
+    if (!flatBooking.amount || flatBooking.amount < currentReservationFee) {
+        throw new Error(`Payment amount must be at least ₱${currentReservationFee}.`);
     }
 
     // Find available rooms
     const availableRooms = await Room.findAll({
         where: { roomTypeId: nestedBooking.roomTypeId, isAvailable: true },
+        order: [['roomNumber', 'ASC']], // Order by room number for consistent selection
         limit: flatBooking.rooms || 1
     });
+    
     if (availableRooms.length < (flatBooking.rooms || 1)) {
         throw new Error('Not enough available rooms for selected type.');
     }
@@ -100,13 +113,19 @@ async function createBooking(nestedBooking) {
     const bookings = [];
     for (let i = 0; i < (flatBooking.rooms || 1); i++) {
         const room = availableRooms[i];
+        
         // Mark room as occupied
-        await room.update({ status: false });
+        await room.update({ isAvailable: false });
+        
         const booking = await Booking.create({
             ...flatBooking,
             room_id: room.id
         });
-        bookings.push(nestBooking(booking));
+        
+        const nestedBooking = nestBooking(booking);
+        bookings.push(nestedBooking);
+        
+       
     }
     return bookings;
 }
@@ -127,6 +146,13 @@ async function updateBooking(id, nestedBooking) {
 async function deleteBooking(id) {
     const booking = await Booking.findByPk(id);
     if (!booking) return false;
+    
+ 
+    const room = await Room.findByPk(booking.room_id);
+    if (room) {
+        await room.update({ isAvailable: true });
+    }
+    
     await booking.destroy();
     return true;
 }
