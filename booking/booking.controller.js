@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bookingService = require('./booking.service');
 
-// POST /api/bookings
+//api/bookings
 router.post('/', async (req, res) => {
     try {
         const bookings = await bookingService.createBooking(req.body);
@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// GET /api/bookings
+//api/bookings
 router.get('/', async (req, res) => {
     try {
         const bookings = await bookingService.getAllBookings();
@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET /api/bookings/:id
+//api/bookings/:id
 router.get('/:id', async (req, res) => {
     try {
         const booking = await bookingService.getBookingById(req.params.id);
@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// PUT /api/bookings/:id
+//PUT /api/bookings/:id
 router.put('/:id', async (req, res) => {
     try {
         const booking = await bookingService.updateBooking(req.params.id, req.body);
@@ -44,7 +44,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// DELETE /api/bookings/:id
+//api/bookings/:id
 router.delete('/:id', async (req, res) => {
     try {
         const deleted = await bookingService.deleteBooking(req.params.id);

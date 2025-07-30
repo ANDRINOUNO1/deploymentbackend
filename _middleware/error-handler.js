@@ -3,7 +3,7 @@ module.exports = errorHandler;
 function errorHandler(err, req, res, next) {
     switch (true) {
         case typeof err === 'string':
-            // custom application error
+ 
             const is404 = err.toLowerCase().endsWith('not found');
             const statusCode = is404 ? 404 : 400;
             return res.status(statusCode).json({ message: err });
@@ -12,7 +12,7 @@ function errorHandler(err, req, res, next) {
             return res.status(401).json({ message: 'Unauthorized' });
 
         default:
-            // Always respond with { message } for frontend
+            console.error(err);
             return res.status(500).json({ message: err && err.message ? err.message : 'Internal Server Error' });
     }
 } 

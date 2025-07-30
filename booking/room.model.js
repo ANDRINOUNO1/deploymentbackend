@@ -1,4 +1,4 @@
-// DataTypes is now passed in as the second argument
+
 module.exports = (sequelize, DataTypes) => {
     const attributes = {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

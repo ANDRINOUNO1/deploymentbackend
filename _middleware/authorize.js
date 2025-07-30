@@ -5,7 +5,7 @@ const db = require('../_helpers/db');
 module.exports = authorize;
 
 function authorize(roles = []) {
-    // Convert a single role string to an array
+ 
     if (typeof roles === 'string') {
         roles = [roles];
     }
@@ -32,7 +32,7 @@ function authorize(roles = []) {
                 req.user = account;
                 next();
             } catch (error) {
-                // Only log error details for debugging
+                
                 console.error('Authorization error:', error);
                 return res.status(500).json({ message: 'Internal Server Error' });
             }

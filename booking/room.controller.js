@@ -1,12 +1,20 @@
+
 const express = require('express');
 const router = express.Router();
 const db = require('../_helpers/db');
 const Room = db.Room;
+const RoomType = db.RoomType; 
 
 // GET all rooms
 router.get('/', async (req, res) => {
     try {
-        const rooms = await Room.findAll();
+        
+        const rooms = await Room.findAll({
+            include: {
+                model: RoomType,
+                attributes: ['type'] 
+            }
+        });
         res.json(rooms);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -16,7 +24,13 @@ router.get('/', async (req, res) => {
 // GET room by id
 router.get('/:id', async (req, res) => {
     try {
-        const room = await Room.findByPk(req.params.id);
+      
+        const room = await Room.findByPk(req.params.id, {
+            include: {
+                model: RoomType,
+                attributes: ['type']
+            }
+        });
         if (!room) return res.status(404).json({ message: 'Room not found' });
         res.json(room);
     } catch (err) {
@@ -58,4 +72,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-module.exports = router; 
+module.exports = router;
