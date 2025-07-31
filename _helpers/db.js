@@ -26,6 +26,7 @@ db.initialize = async function() {
         db.Account = require('../account/account.model')(sequelize, DataTypes);
         db.RefreshToken = require('../account/refresh-token.model')(sequelize, DataTypes);
         db.Booking = require('../booking/booking.model')(sequelize, DataTypes);
+        db.Archive = require('../booking/archive.model')(sequelize, DataTypes);
         db.Room = require('../rooms/room.model')(sequelize, DataTypes);
         db.RoomType = require('../rooms/room-type.model')(sequelize);
         db.ReservationFee = require('../rooms/reservation-fee.model')(sequelize); 
@@ -37,7 +38,9 @@ db.initialize = async function() {
         db.Account.hasMany(db.Booking, { foreignKey: 'accountId'});
         db.Booking.belongsTo(db.Account, { foreignKey: 'accountId'});
 
-      
+        db.Archive.belongsTo(db.Room, { foreignKey: 'room_id' });
+        db.Room.hasMany(db.Archive, { foreignKey: 'room_id' });
+
         db.Room.hasMany(db.Booking, { foreignKey: 'room_id' });
         db.Booking.belongsTo(db.Room, { foreignKey: 'room_id' });
 
