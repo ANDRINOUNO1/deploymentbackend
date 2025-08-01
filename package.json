@@ -27,7 +27,7 @@
     "mysql2": "^3.14.3",
     "nodemailer": "^7.0.5",
     "rootpath": "^0.1.2",
-    "sequelize": "5.22.5",
+    "sequelize": "4.44.4",
     "debug": "4.1.1"
   },
   "devDependencies": {
