@@ -3,9 +3,9 @@
 ## Render Configuration
 
 ### Build Settings:
-- **Build Command**: `npm install`
+- **Build Command**: `npm install` (OR `npm install; npm run build`)
 - **Start Command**: `npm start`
-- **Node.js Version**: 18.x (specified in package.json and .nvmrc)
+- **Node.js Version**: 20.x (specified in package.json and .nvmrc)
 
 ### Environment Variables:
 Set these in your Render dashboard:
@@ -31,13 +31,15 @@ Set these in your Render dashboard:
 2. **In Render dashboard**:
    - Create new Web Service
    - Connect your Git repository
-   - Set Build Command: `npm install`
+   - Set Build Command: `npm install` (or `npm install; npm run build`)
    - Set Start Command: `npm start`
    - Add all environment variables listed above
-3. **Deploy** - Render will use Node.js 18.x and avoid the debug module issue
+3. **Deploy** - Render will use Node.js 20.x and avoid the debug module issue
 
 ## What Will Happen:
-- ✅ Uses Node.js 18.x (stable version)
+- ✅ Uses Node.js 20.x (current LTS)
+- ✅ Installs dependencies with `npm install`
+- ✅ Runs build script (if using `npm run build`)
 - ✅ Connects to your online MySQL database
 - ✅ Adds `reservationFeePercentage` to room types
 - ✅ Seeds room types with new percentage-based fees
@@ -48,4 +50,5 @@ Set these in your Render dashboard:
 If you still get the debug module error, try:
 1. Clear Render cache
 2. Redeploy with the updated package.json
-3. Make sure you're using the `npm install` build command, not `npm start` 
+3. Make sure you're using the `npm install` build command, not `npm start`
+4. The build script is now available if needed 
