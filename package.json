@@ -14,10 +14,9 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
-    "cord": "^1.0.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
-    "express": "4.17.1",
+    "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
     "express-jwt": "^8.5.1",
     "express-validator": "^7.0.1",
@@ -32,8 +31,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  },
-  "overrides": {
-    "debug": "4.3.4"
   }
 }
