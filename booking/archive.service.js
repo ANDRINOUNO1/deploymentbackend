@@ -1,5 +1,5 @@
 const db = require('../_helpers/db');
-const { Archive, Room } = db;
+const Archive = db.Archive;
 
 module.exports = {
     createArchive,
@@ -14,22 +14,13 @@ async function createArchive(data) {
 }
 
 async function getAllArchives() {
-    return await Archive.findAll({
-        include: [{
-            model: Room,
-            attributes: ['room_number', 'room_type']
-        }]
-    });
+    return await Archive.findAll();
 }
 
 async function getArchiveById(id) {
-    return await Archive.findByPk(id, {
-        include: [{
-            model: Room,
-            attributes: ['room_number', 'room_type']
-        }]
-    });
+    return await Archive.findByPk(id);
 }
+
 async function updateArchive(id, data) {
     const archive = await getArchiveById(id);
     if (!archive) return null;
