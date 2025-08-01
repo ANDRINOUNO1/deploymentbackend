@@ -10,8 +10,13 @@ module.exports = db;
 
 db.initialize = async function() {
     try {
-       
-        const { host, port, user, password, database } = config.database;
+        // Use environment variables if available, otherwise fall back to config.json
+        const host = process.env.DB_HOST || config.database.host;
+        const port = process.env.DB_PORT || config.database.port;
+        const user = process.env.DB_USER || config.database.user;
+        const password = process.env.DB_PASSWORD || config.database.password;
+        const database = process.env.DB_NAME || config.database.database;
+        
         const connection = await mysql.createConnection({ host, port, user, password });
         await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
         await connection.end();
@@ -19,7 +24,9 @@ db.initialize = async function() {
         // connect to db
         const sequelize = new Sequelize(database, user, password, {
             dialect: 'mysql',
-            logging: false
+            logging: false,
+            host: host,
+            port: port
         });
 
        
@@ -29,7 +36,6 @@ db.initialize = async function() {
         db.Archive = require('../booking/archive.model')(sequelize, DataTypes);
         db.Room = require('../rooms/room.model')(sequelize, DataTypes);
         db.RoomType = require('../rooms/room-type.model')(sequelize);
-        db.ReservationFee = require('../rooms/reservation-fee.model')(sequelize); 
 
         // define relationships
         db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE', foreignKey: 'accountId' });
@@ -69,13 +75,6 @@ db.initialize = async function() {
         if (roomCount === 0) {
             await db.Room.seedDefaults();
             console.log('Default rooms have been seeded.');
-        }
-
-        // Seed reservation fee if it doesn't exist
-        const reservationFeeCount = await db.ReservationFee.count();
-        if (reservationFeeCount === 0) {
-            await db.ReservationFee.seedDefaults();
-            console.log('Default reservation fee has been seeded.');
         }
 
         db.sequelize = sequelize;
