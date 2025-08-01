@@ -10,6 +10,9 @@ const emailConfig = {
     }
 };
 
+let emailQueue = [];
+let isProcessing = false;
+const EMAIL_DELAY = 2000; 
 
 const transporter = nodemailer.createTransport(emailConfig);
 
@@ -192,6 +195,36 @@ const emailService = {
         }
     },
 
+    // queue 
+    async processEmailQueue() {
+        if (isProcessing || emailQueue.length === 0) return;
+        
+        isProcessing = true;
+        
+        while (emailQueue.length > 0) {
+            const emailTask = emailQueue.shift();
+            try {
+                console.log(`📧 Sending email to: ${emailTask.to}`);
+                const result = await emailTask.sendFunction();
+                console.log(`✅ Email sent successfully to: ${emailTask.to}`);
+                
+                // Add delay between emails to respect Gmail rate limits
+                if (emailQueue.length > 0) {
+                    await new Promise(resolve => setTimeout(resolve, EMAIL_DELAY));
+                }
+            } catch (error) {
+                console.error(`❌ Failed to send email to ${emailTask.to}:`, error.message);
+            }
+        }
+        
+        isProcessing = false;
+    },
+
+    // Add email to queue
+    addToEmailQueue(sendFunction, to) {
+        emailQueue.push({ sendFunction, to });
+        this.processEmailQueue();
+    },
 
     async sendBookingConfirmation(bookingData, recipientEmail) {
         try {
