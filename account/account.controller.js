@@ -16,7 +16,27 @@ router.post('/revoke-token', revokeToken);   // Public route
 
 // Test route to verify server is running latest code
 router.get('/test', (req, res) => {
-    res.send('Account controller is working!');
+    res.json({
+        message: 'Account controller is working!',
+        timestamp: new Date().toISOString(),
+        cors: {
+            origin: req.headers.origin,
+            method: req.method
+        }
+    });
+});
+
+// Test authentication endpoint
+router.post('/test-auth', (req, res) => {
+    res.json({
+        message: 'Authentication endpoint is accessible',
+        body: req.body,
+        headers: {
+            origin: req.headers.origin,
+            'content-type': req.headers['content-type']
+        },
+        timestamp: new Date().toISOString()
+    });
 });
 
 module.exports = router;
