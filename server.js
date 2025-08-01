@@ -3,8 +3,6 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const db = require('./_helpers/db');
-const errorHandler = require('./_middleware/error-handler');
 
 // Middleware setup
 app.use(express.json());
@@ -82,33 +80,23 @@ app.get('/health', (req, res) => {
   });
 });
 
-// --- Start Server with graceful database handling ---
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
-
-// Start server immediately, then try to initialize database
-app.listen(port, () => {
-    console.log('Server listening on port ' + port);
-    
-    // Try to initialize database after server starts
-    db.initialize()
-        .then((success) => {
-            if (success) {
-                console.log('Database initialized successfully');
-            } else {
-                console.log('Database initialization failed, but server is running');
-            }
-        })
-        .catch((err) => {
-            console.error("Database initialization error:", err);
-            console.log("Server is running but database is not available");
-        });
+// Simple authentication endpoint for testing
+app.post('/accounts/authenticate', (req, res) => {
+  res.json({
+    message: 'Authentication endpoint is working',
+    body: req.body,
+    cors: {
+      origin: req.headers.origin,
+      method: req.method
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Setup routes after server starts (database or not)
-app.use('/accounts', require('./account/account.controller'));
-app.use('/bookings', require('./booking/booking.controller'));
-app.use('/rooms', require('./rooms/room.controller').router);
-app.use('/archives', require('./booking/archive.controller'));
+// --- Start Server ---
+const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
 
-// --- Global error handler ---
-app.use(errorHandler);
+app.listen(port, () => {
+    console.log('Server listening on port ' + port);
+    console.log('CORS is configured for:', 'https://hotelbookingui.onrender.com');
+});
