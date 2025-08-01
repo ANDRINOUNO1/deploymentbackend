@@ -10,8 +10,11 @@ function authorize(roles = []) {
         roles = [roles];
     }
 
+    // Use environment variable for JWT secret, fallback to config
+    const jwtSecret = process.env.JWT_SECRET || config.secret;
+
     return [
-        expressjwt({ secret: config.secret, algorithms: ['HS256'] }),
+        expressjwt({ secret: jwtSecret, algorithms: ['HS256'] }),
 
         async (req, res, next) => {
             try {

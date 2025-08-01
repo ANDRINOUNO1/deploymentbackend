@@ -4,7 +4,9 @@
   "description": "NodeJS + MySQL API with JWT Auth",
   "scripts": {
     "start": "node ./server.js",
-    "start:dev": "nodemon ./server.js"
+    "start:dev": "nodemon ./server.js",
+    "deploy": "railway up",
+    "logs": "railway logs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -27,6 +29,10 @@
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "@railway/cli": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
