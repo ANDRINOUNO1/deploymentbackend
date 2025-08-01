@@ -10,7 +10,27 @@ const errorHandler = require('./_middleware/error-handler');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: true }));
+
+// CORS configuration - allow specific origins
+const allowedOrigins = [
+  'https://hotelbookingui.onrender.com', // Render frontend
+  'http://localhost:4200', // Local development
+  'http://localhost:3000'  // Alternative local development
+];
+
+app.use(cors({ 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true 
+}));
 
 // --- Start Server only after DB initialization ---
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
