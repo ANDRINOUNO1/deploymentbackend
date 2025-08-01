@@ -17,6 +17,8 @@ db.initialize = async function() {
         const password = process.env.DB_PASSWORD || config.database.password;
         const database = process.env.DB_NAME || config.database.database;
         
+        console.log('Attempting to connect to database...');
+        
         const connection = await mysql.createConnection({ host, port, user, password });
         await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
         await connection.end();
@@ -29,6 +31,9 @@ db.initialize = async function() {
             port: port
         });
 
+        // Test the connection
+        await sequelize.authenticate();
+        console.log('Database connection established successfully');
        
         db.Account = require('../account/account.model')(sequelize, DataTypes);
         db.RefreshToken = require('../account/refresh-token.model')(sequelize, DataTypes);
@@ -53,10 +58,8 @@ db.initialize = async function() {
         db.RoomType.hasMany(db.Room, { foreignKey: 'roomTypeId' });
         db.Room.belongsTo(db.RoomType, { foreignKey: 'roomTypeId' });
 
-
         await sequelize.sync({ force: false });
         console.log('Database synchronized successfully');
-
 
         const userCount = await db.Account.count();
         if (userCount === 0) {
@@ -80,8 +83,10 @@ db.initialize = async function() {
         db.sequelize = sequelize;
 
         console.log('Database initialization completed successfully');
+        return true;
     } catch (error) {
         console.error('Error initializing database:', error);
-        throw error;
+        console.log('Server will continue without database connection');
+        return false;
     }
 }

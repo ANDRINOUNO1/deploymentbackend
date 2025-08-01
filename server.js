@@ -91,11 +91,15 @@ app.listen(port, () => {
     
     // Try to initialize database after server starts
     db.initialize()
-        .then(() => {
-            console.log('Database initialized successfully');
+        .then((success) => {
+            if (success) {
+                console.log('Database initialized successfully');
+            } else {
+                console.log('Database initialization failed, but server is running');
+            }
         })
         .catch((err) => {
-            console.error("Database initialization failed:", err);
+            console.error("Database initialization error:", err);
             console.log("Server is running but database is not available");
         });
 });
