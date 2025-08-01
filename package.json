@@ -8,7 +8,8 @@
   "scripts": {
     "start": "node ./server.js",
     "start:dev": "nodemon ./server.js",
-    "build": "echo 'Build completed'"
+    "build": "echo 'Build completed'",
+    "postinstall": "node -e \"console.log('Express version:', require('express/package.json').version)\""
   },
   "dependencies": {
     "bcryptjs": "2.4.1",
