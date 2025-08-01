@@ -1,6 +1,7 @@
 const db = require('../_helpers/db');
 const Booking = db.Booking;
 const Room = db.Room; 
+const Archive = db.Archive;
 const emailService = require('../_helpers/email.service');
 const { Op } = require('sequelize');
 
@@ -146,16 +147,21 @@ async function updateBooking(id, nestedBooking) {
 async function deleteBooking(id) {
     const booking = await Booking.findByPk(id);
     if (!booking) return false;
-    
- 
+
+    await Archive.create({
+        ...booking.toJSON(),
+        deleted_at: new Date()
+    });
+
     const room = await Room.findByPk(booking.room_id);
     if (room) {
         await room.update({ isAvailable: true });
     }
-    
+
     await booking.destroy();
     return true;
 }
+
 
 async function getBookingById(id) {
     const booking = await Booking.findByPk(id);
