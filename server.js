@@ -82,26 +82,29 @@ app.get('/health', (req, res) => {
   });
 });
 
-// --- Start Server only after DB initialization ---
+// --- Start Server with graceful database handling ---
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
 
-db.initialize()
-    .then(() => {
-        // --- API routes are setup AFTER the DB is ready ---
-        app.use('/accounts', require('./account/account.controller'));
-        app.use('/bookings', require('./booking/booking.controller'));
-        app.use('/rooms', require('./rooms/room.controller').router);
-        app.use('/archives', require('./booking/archive.controller'));
-
-        // --- Global error handler ---
-        app.use(errorHandler);
-
-        // --- Start listening for requests ---
-        app.listen(port, () => {
-            console.log('Server listening on port ' + port);
+// Start server immediately, then try to initialize database
+app.listen(port, () => {
+    console.log('Server listening on port ' + port);
+    
+    // Try to initialize database after server starts
+    db.initialize()
+        .then(() => {
+            console.log('Database initialized successfully');
+        })
+        .catch((err) => {
+            console.error("Database initialization failed:", err);
+            console.log("Server is running but database is not available");
         });
-    })
-    .catch((err) => {
-        console.error("Database initialization failed:", err);
-        process.exit(1); // Exit the process with an error code
-    });
+});
+
+// Setup routes after server starts (database or not)
+app.use('/accounts', require('./account/account.controller'));
+app.use('/bookings', require('./booking/booking.controller'));
+app.use('/rooms', require('./rooms/room.controller').router);
+app.use('/archives', require('./booking/archive.controller'));
+
+// --- Global error handler ---
+app.use(errorHandler);

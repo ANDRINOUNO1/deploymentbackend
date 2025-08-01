@@ -42,12 +42,34 @@ router.post('/test-auth', (req, res) => {
 module.exports = router;
 
 function authenticate(req, res, next) {
+    // Check if database is available
+    if (!accountService || typeof accountService.authenticate !== 'function') {
+        return res.status(503).json({ 
+            message: 'Database service is not available',
+            error: 'Service temporarily unavailable'
+        });
+    }
+    
     accountService.authenticate({ ...req.body, ipAddress: req.ip }) // Pass ipAddress
         .then(account => res.json(account))
-        .catch(err => res.status(400).json({ message: err.toString() }));
+        .catch(err => {
+            console.error('Authentication error:', err);
+            res.status(400).json({ 
+                message: err.toString(),
+                error: 'Authentication failed'
+            });
+        });
 }
 
 function register(req, res, next) {
+    // Check if database is available
+    if (!accountService || typeof accountService.register !== 'function') {
+        return res.status(503).json({ 
+            message: 'Database service is not available',
+            error: 'Service temporarily unavailable'
+        });
+    }
+    
     accountService.register(req.body)
         .then(account => res.status(201).json(account))
         .catch(err => res.status(400).json({ message: err.toString() }));
