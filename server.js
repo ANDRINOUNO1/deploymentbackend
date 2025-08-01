@@ -1,17 +1,12 @@
-require('rootpath')();
 const express = require('express');
 const app = express();
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
 
 // Middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
-// Comprehensive CORS configuration
+// CORS headers for all responses
 app.use((req, res, next) => {
-  // Set CORS headers for all responses
   res.header('Access-Control-Allow-Origin', 'https://hotelbookingui.onrender.com');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -26,35 +21,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Additional CORS middleware
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'https://hotelbookingui.onrender.com',
-      'http://localhost:4200',
-      'http://localhost:3000'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
-
-// Debug middleware to log requests
+// Debug middleware
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
   next();
 });
 
-// Simple test endpoint (no database required)
+// Test endpoints
 app.get('/test', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -67,7 +40,6 @@ app.get('/test', (req, res) => {
   });
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -80,7 +52,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Simple authentication endpoint for testing
 app.post('/accounts/authenticate', (req, res) => {
   res.json({
     message: 'Authentication endpoint is working',
@@ -93,10 +64,9 @@ app.post('/accounts/authenticate', (req, res) => {
   });
 });
 
-// --- Start Server ---
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
-
+// Start server
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log('Server listening on port ' + port);
-    console.log('CORS is configured for:', 'https://hotelbookingui.onrender.com');
+    console.log('CORS is configured for: https://hotelbookingui.onrender.com');
 });
