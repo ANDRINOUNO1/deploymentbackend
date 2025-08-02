@@ -11,14 +11,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// CORS configuration
+// CORS configuration for Railway
 app.use(cors({
-  origin: 'https://hotelbookingui.onrender.com',
-  credentials: true
+  origin: ['https://hotelbookingui.onrender.com', 'http://localhost:4200'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Server is running on Railway',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // --- Start Server only after DB initialization ---
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
+const port = process.env.PORT || 4000;
 
 db.initialize()
     .then(() => {
@@ -34,6 +45,7 @@ db.initialize()
         // --- Start listening for requests ---
         app.listen(port, () => {
             console.log('Server listening on port ' + port);
+            console.log('Railway deployment ready!');
         });
     })
     .catch((err) => {
