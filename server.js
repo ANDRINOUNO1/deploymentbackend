@@ -1,42 +1,42 @@
+require('rootpath')();
 const express = require('express');
 const app = express();
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const db = require('./_helpers/db');
+const errorHandler = require('./_middleware/error-handler');
 
-// Basic CORS headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  next();
-});
+// Middleware setup
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Simple test endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Server is working!',
-    timestamp: new Date().toISOString()
-  });
-});
+// CORS configuration
+app.use(cors({
+  origin: 'https://hotelbookingui.onrender.com',
+  credentials: true
+}));
 
-app.get('/test', (req, res) => {
-  res.json({ 
-    message: 'Test endpoint working',
-    timestamp: new Date().toISOString()
-  });
-});
+// --- Start Server only after DB initialization ---
+const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
 
-app.post('/accounts/authenticate', (req, res) => {
-  res.json({
-    message: 'Auth endpoint working',
-    timestamp: new Date().toISOString()
-  });
-});
+db.initialize()
+    .then(() => {
+        // --- API routes are setup AFTER the DB is ready ---
+        app.use('/accounts', require('./account/account.controller'));
+        app.use('/bookings', require('./booking/booking.controller'));
+        app.use('/rooms', require('./rooms/room.controller').router);
+        app.use('/archives', require('./booking/archive.controller'));
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+        // --- Global error handler ---
+        app.use(errorHandler);
+
+        // --- Start listening for requests ---
+        app.listen(port, () => {
+            console.log('Server listening on port ' + port);
+        });
+    })
+    .catch((err) => {
+        console.error("Database initialization failed:", err);
+        process.exit(1); // Exit the process with an error code
+    });
