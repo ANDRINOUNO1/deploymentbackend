@@ -20,7 +20,14 @@ app.use(cors({
 }));
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://hotelbookingui.onrender.com');
+  // Allow both deployed and local development origins
+  const allowedOrigins = ['https://hotelbookingui.onrender.com', 'http://localhost:4200'];
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.header('Access-Control-Allow-Credentials', 'true');
