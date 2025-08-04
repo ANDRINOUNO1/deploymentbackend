@@ -24,6 +24,20 @@ router.get('/', async (req, res) => {
     }
 });
 
+//api/bookings/check-email/:email
+router.get('/check-email/:email', async (req, res) => {
+    try {
+        const email = req.params.email;
+        const existingBooking = await bookingService.getBookingByEmail(email);
+        res.json({ 
+            exists: !!existingBooking,
+            booking: existingBooking 
+        });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
 //api/bookings/:id
 router.get('/:id', async (req, res) => {
     try {

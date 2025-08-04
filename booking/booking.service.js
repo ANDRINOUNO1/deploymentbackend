@@ -11,7 +11,8 @@ module.exports = {
     getAllBookings,
     updateBooking,
     deleteBooking,
-    getBookingById
+    getBookingById,
+    getBookingByEmail
 };
 
 // --- Mapping functions ---
@@ -174,6 +175,15 @@ async function deleteBooking(id) {
 
 async function getBookingById(id) {
     const booking = await Booking.findByPk(id);
+    if (!booking) return null;
+    return nestBooking(booking);
+}
+
+async function getBookingByEmail(email) {
+    const booking = await Booking.findOne({
+        where: { guest_email: email },
+        order: [['created_at', 'DESC']] // Get the most recent booking
+    });
     if (!booking) return null;
     return nestBooking(booking);
 }
