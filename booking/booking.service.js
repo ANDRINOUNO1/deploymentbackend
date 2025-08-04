@@ -50,6 +50,23 @@ function flattenBooking(nested) {
 }
 
 function nestBooking(flat) {
+    // Helper function to format dates consistently
+    const formatDate = (dateValue) => {
+        if (!dateValue) return null;
+        
+        try {
+            const date = new Date(dateValue);
+            if (isNaN(date.getTime())) {
+                console.error('Invalid date value:', dateValue);
+                return null;
+            }
+            return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+        } catch (error) {
+            console.error('Error formatting date:', dateValue, error);
+            return null;
+        }
+    };
+
     return {
         id: flat.id,
         guest: {
@@ -61,8 +78,8 @@ function nestBooking(flat) {
             city: flat.guest_city
         },
         availability: {
-            checkIn: flat.checkIn,
-            checkOut: flat.checkOut,
+            checkIn: formatDate(flat.checkIn),
+            checkOut: formatDate(flat.checkOut),
             adults: flat.adults,
             children: flat.children,
             rooms: flat.rooms
@@ -182,7 +199,7 @@ async function getBookingById(id) {
 async function getBookingByEmail(email) {
     const booking = await Booking.findOne({
         where: { guest_email: email },
-        order: [['created_at', 'DESC']] // Get the most recent booking
+        order: [['created_at', 'DESC']] 
     });
     if (!booking) return null;
     return nestBooking(booking);
