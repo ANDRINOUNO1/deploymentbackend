@@ -172,7 +172,6 @@ async function deleteBooking(id) {
     return true;
 }
 
-
 async function getBookingById(id) {
     const booking = await Booking.findByPk(id);
     if (!booking) return null;

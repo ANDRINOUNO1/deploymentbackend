@@ -57,8 +57,6 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-
-
 // Debug email configuration endpoint
 router.get('/debug-email-config', async (req, res) => {
     try {
