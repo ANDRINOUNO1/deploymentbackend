@@ -6,6 +6,6 @@
       "password": "]8v]5+mK",
       "database": "u875409848_mata"
     },
-    "secret": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+    "secret": "97e019e7b1bd4b2d310f85982d1fb24a69a6733d514b956c45a1bed79f850d0fbfa5c099663869d562fa6c9d1df1d967e9bbd4154cdd996ad4535e4b8a0cbdb0",
     "jwtExpiration": 3600
-} 
+  }

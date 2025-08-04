@@ -24,7 +24,7 @@ function flattenBooking(nested) {
         guest_phone: nested.guest?.phone || '',
         guest_address: nested.guest?.address || '',
         guest_city: nested.guest?.city || '',
-   
+
         checkIn: nested.availability?.checkIn || '',
         checkOut: nested.availability?.checkOut || '',
         adults: nested.availability?.adults || 0,
