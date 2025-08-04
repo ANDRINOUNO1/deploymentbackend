@@ -149,7 +149,7 @@ async function getRefreshToken(token) {
 }
 
 function generateJwtToken(account) {
-    return jwt.sign({ sub: account.id, id: account.id, role: account.role }, config.secret, { expiresIn: '15m' });
+    return jwt.sign({ sub: account.id, id: account.id, role: account.role }, config.secret, { expiresIn: '1h' });
 }
 
 async function generateRefreshToken(account, ipAddress) {
