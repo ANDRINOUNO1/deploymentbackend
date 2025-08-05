@@ -55,9 +55,10 @@ db.initialize()
     .then(() => {
         // --- API routes are setup AFTER the DB is ready ---
         app.use('/accounts', require('./account/account.controller'));
-app.use('/bookings', require('./booking/booking.controller'));
-app.use('/rooms', require('./rooms/room.controller').router);
-app.use('/archives', require('./booking/archive.controller'));
+        app.use('/bookings', require('./booking/booking.controller'));
+        app.use('/rooms', require('./rooms/room.controller').router);
+        app.use('/archives', require('./booking/archive.controller'));
+        app.use('/room-availability', require('./rooms/room-availability.controller'));
 
         // --- Global error handler ---
         app.use(errorHandler);
