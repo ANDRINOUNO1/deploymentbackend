@@ -10,6 +10,7 @@ module.exports = {
     createBooking,
     getAllBookings,
     updateBooking,
+    extendBooking,
     deleteBooking,
     getBookingById,
     getBookingByEmail
@@ -185,6 +186,58 @@ async function updateBooking(id, nestedBooking) {
     const flatBooking = flattenBooking(nestedBooking);
     await booking.update(flatBooking);
     return nestBooking(booking);
+}
+
+async function extendBooking(id, updateData) {
+    console.log('Extend booking called with ID:', id);
+    console.log('Update data received:', updateData);
+    
+    const booking = await Booking.findByPk(id);
+    if (!booking) {
+        console.error('Booking not found with ID:', id);
+        return null;
+    }
+    
+    console.log('Current booking data:', booking.toJSON());
+    
+    try {
+        // Handle flat structure from frontend
+        const updateFields = {};
+        
+        // Update checkout date if provided
+        if (updateData.checkOut) {
+            updateFields.checkOut = updateData.checkOut;
+            console.log('Setting checkout date to:', updateData.checkOut);
+        }
+        
+        // Update total amount if provided
+        if (updateData.totalAmount !== undefined) {
+            updateFields.paidamount = updateData.totalAmount;
+            console.log('Setting total amount to:', updateData.totalAmount);
+        }
+        
+        // Update other fields if provided (preserve existing data)
+        if (updateData.guest_firstName) updateFields.guest_firstName = updateData.guest_firstName;
+        if (updateData.guest_lastName) updateFields.guest_lastName = updateData.guest_lastName;
+        if (updateData.guest_email) updateFields.guest_email = updateData.guest_email;
+        if (updateData.guest_phone) updateFields.guest_phone = updateData.guest_phone;
+        if (updateData.checkIn) updateFields.checkIn = updateData.checkIn;
+        if (updateData.roomType) updateFields.roomType = updateData.roomType;
+        if (updateData.status) updateFields.status = updateData.status;
+        
+        // Always update the updated_at timestamp
+        updateFields.updated_at = new Date();
+        
+        console.log('Final update fields:', updateFields);
+        
+        await booking.update(updateFields);
+        const updatedBooking = nestBooking(booking);
+        console.log('Updated booking result:', updatedBooking);
+        return updatedBooking;
+    } catch (error) {
+        console.error('Error extending booking:', error);
+        throw error;
+    }
 }
 
 async function deleteBooking(id) {
