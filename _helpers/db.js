@@ -41,6 +41,7 @@ db.initialize = async function() {
         db.Archive = require('../booking/archive.model')(sequelize, DataTypes);
         db.Room = require('../rooms/room.model')(sequelize, DataTypes);
         db.RoomType = require('../rooms/room-type.model')(sequelize);
+        db.RoomOccupancy = require('../rooms/room-occupancy.model')(sequelize, DataTypes);
 
         // define relationships
         db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE', foreignKey: 'accountId' });
@@ -57,6 +58,13 @@ db.initialize = async function() {
 
         db.RoomType.hasMany(db.Room, { foreignKey: 'roomTypeId' });
         db.Room.belongsTo(db.RoomType, { foreignKey: 'roomTypeId' });
+
+        // Room occupancy relationships
+        db.Room.hasMany(db.RoomOccupancy, { foreignKey: 'roomId' });
+        db.RoomOccupancy.belongsTo(db.Room, { foreignKey: 'roomId' });
+        
+        db.Booking.hasMany(db.RoomOccupancy, { foreignKey: 'bookingId' });
+        db.RoomOccupancy.belongsTo(db.Booking, { foreignKey: 'bookingId' });
 
         await sequelize.sync({ force: false });
         console.log('Database synchronized successfully');
