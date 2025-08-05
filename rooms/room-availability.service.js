@@ -18,32 +18,13 @@ async function findAvailableRooms(checkIn, checkOut, roomTypeId = null) {
     try {
         console.log(`Finding available rooms from ${checkIn} to ${checkOut}, roomTypeId: ${roomTypeId}`);
         
-        // Use date-based availability since RoomOccupancy table exists
-        const whereClause = {
-            [Op.or]: [
-                // Rooms with no occupancy in the date range
-                {
-                    id: {
-                        [Op.notIn]: db.sequelize.literal(`
-                            SELECT DISTINCT "roomId" 
-                            FROM "RoomOccupancy" 
-                            WHERE "status" = 'active' 
-                            AND (
-                                ("checkIn" <= '${checkIn}' AND "checkOut" > '${checkIn}')
-                                OR ("checkIn" < '${checkOut}' AND "checkOut" >= '${checkOut}')
-                                OR ("checkIn" >= '${checkIn}' AND "checkOut" <= '${checkOut}')
-                            )
-                        `)
-                    }
-                }
-            ]
-        };
-        
+        // Get all rooms of the specified type
+        const whereClause = {};
         if (roomTypeId) {
             whereClause.roomTypeId = roomTypeId;
         }
         
-        const availableRooms = await Room.findAll({
+        const allRooms = await Room.findAll({
             where: whereClause,
             include: [{
                 model: RoomType,
@@ -52,17 +33,55 @@ async function findAvailableRooms(checkIn, checkOut, roomTypeId = null) {
             order: [['roomNumber', 'ASC']]
         });
         
-        console.log(`Found ${availableRooms.length} available rooms`);
+        // Filter out rooms that have conflicting occupancy
+        const availableRooms = [];
+        for (const room of allRooms) {
+            try {
+                const isAvailable = await checkRoomAvailability(room.id, checkIn, checkOut);
+                if (isAvailable) {
+                    availableRooms.push(room);
+                }
+            } catch (error) {
+                console.error(`Error checking availability for room ${room.id}:`, error);
+                // If we can't check availability, assume room is available
+                availableRooms.push(room);
+            }
+        }
+        
+        console.log(`Found ${availableRooms.length} available rooms out of ${allRooms.length} total`);
         return availableRooms;
     } catch (error) {
         console.error('Error finding available rooms:', error);
-        throw error;
+        // Fallback to simple availability check
+        console.log('Falling back to simple availability check...');
+        const whereClause = { isAvailable: true };
+        if (roomTypeId) {
+            whereClause.roomTypeId = roomTypeId;
+        }
+        
+        const fallbackRooms = await Room.findAll({
+            where: whereClause,
+            include: [{
+                model: RoomType,
+                as: 'roomType'
+            }],
+            order: [['roomNumber', 'ASC']]
+        });
+        
+        console.log(`Fallback: Found ${fallbackRooms.length} available rooms`);
+        return fallbackRooms;
     }
 }
 
 // Check if a specific room is available for a date range
 async function checkRoomAvailability(roomId, checkIn, checkOut, excludeBookingId = null) {
     try {
+        // Validate inputs
+        if (!roomId || !checkIn || !checkOut) {
+            console.log(`Invalid inputs: roomId=${roomId}, checkIn=${checkIn}, checkOut=${checkOut}`);
+            return false;
+        }
+        
         const whereClause = {
             roomId,
             status: 'active',
@@ -99,13 +118,20 @@ async function checkRoomAvailability(roomId, checkIn, checkOut, excludeBookingId
         return isAvailable;
     } catch (error) {
         console.error('Error checking room availability:', error);
-        throw error;
+        // Return false (not available) on error to be safe
+        return false;
     }
 }
 
 // Create room occupancy record
 async function createRoomOccupancy(roomId, bookingId, checkIn, checkOut) {
     try {
+        // Validate inputs
+        if (!roomId || !bookingId || !checkIn || !checkOut) {
+            console.error('Invalid inputs for createRoomOccupancy:', { roomId, bookingId, checkIn, checkOut });
+            throw new Error('Invalid inputs for room occupancy creation');
+        }
+        
         // First check if room is available
         const isAvailable = await checkRoomAvailability(roomId, checkIn, checkOut);
         if (!isAvailable) {
