@@ -60,18 +60,60 @@ router.get('/available/:type', async (req, res) => {
     try {
         const { type } = req.params;
         
-        const availableRooms = await Room.findAll({
-            include: {
-                model: RoomType,
-                where: { type: type },
-                attributes: ['type', 'description', 'basePrice', 'reservationFeePercentage']
-            },
-            where: { isAvailable: true },
-            order: [['roomNumber', 'ASC']]
-        });
+        // Get the room type first
+        const roomType = await RoomType.findOne({ where: { type: type } });
+        if (!roomType) {
+            return res.status(404).json({ message: 'Room type not found' });
+        }
         
-        res.json(availableRooms);
+        // Get current date for availability check
+        const today = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        // Use the room availability service
+        const roomAvailabilityService = require('./room-availability.service');
+        
+        try {
+            const availableRooms = await roomAvailabilityService.findAvailableRooms(
+                today,
+                tomorrow,
+                roomType.id
+            );
+            
+            // Transform to match frontend expectations
+            const transformedRooms = availableRooms.map(room => ({
+                id: room.id,
+                roomNumber: room.roomNumber,
+                roomTypeId: room.roomTypeId,
+                price: room.RoomType?.basePrice || 0,
+                isAvailable: true,
+                RoomType: {
+                    type: room.RoomType?.type || type,
+                    description: room.RoomType?.description || '',
+                    basePrice: room.RoomType?.basePrice || 0,
+                    reservationFeePercentage: room.RoomType?.reservationFeePercentage || 0
+                }
+            }));
+            
+            res.json(transformedRooms);
+        } catch (availabilityError) {
+            console.error('Error with date-based availability, falling back to simple check:', availabilityError);
+            
+            // Fallback to simple availability check
+            const availableRooms = await Room.findAll({
+                include: {
+                    model: RoomType,
+                    where: { type: type },
+                    attributes: ['type', 'description', 'basePrice', 'reservationFeePercentage']
+                },
+                where: { isAvailable: true },
+                order: [['roomNumber', 'ASC']]
+            });
+            
+            res.json(availableRooms);
+        }
     } catch (err) {
+        console.error('Error in /available/:type endpoint:', err);
         res.status(500).json({ message: err.message });
     }
 });
