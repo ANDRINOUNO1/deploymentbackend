@@ -57,7 +57,7 @@ db.initialize = async function() {
         db.Booking.belongsTo(db.Room, { foreignKey: 'room_id' });
 
         db.RoomType.hasMany(db.Room, { foreignKey: 'roomTypeId' });
-        db.Room.belongsTo(db.RoomType, { foreignKey: 'roomTypeId' });
+        db.Room.belongsTo(db.RoomType, { foreignKey: 'roomTypeId', as: 'roomType' });
 
         // Room occupancy relationships
         db.Room.hasMany(db.RoomOccupancy, { foreignKey: 'roomId' });

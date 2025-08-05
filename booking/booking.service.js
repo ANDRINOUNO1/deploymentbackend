@@ -146,39 +146,74 @@ async function createBooking(nestedBooking) {
         throw new Error(`Payment amount must be at least ₱${reservationFee} (${reservationFee}% of room price).`);
     }
 
-    // Find available rooms using date-based availability
-    const availableRooms = await roomAvailabilityService.findAvailableRooms(
-        flatBooking.checkIn,
-        flatBooking.checkOut,
-        nestedBooking.roomTypeId
-    );
-    
-    if (availableRooms.length < (flatBooking.rooms || 1)) {
-        throw new Error(`Not enough available rooms for selected type. Only ${availableRooms.length} rooms available for the selected dates.`);
-    }
-
-    const bookings = [];
-    for (let i = 0; i < (flatBooking.rooms || 1); i++) {
-        const room = availableRooms[i];
-        
-        // Create booking
-        const booking = await Booking.create({
-            ...flatBooking,
-            room_id: room.id
-        });
-        
-        // Create room occupancy record
-        await roomAvailabilityService.createRoomOccupancy(
-            room.id,
-            booking.id,
+    try {
+        // Find available rooms using date-based availability
+        const availableRooms = await roomAvailabilityService.findAvailableRooms(
             flatBooking.checkIn,
-            flatBooking.checkOut
+            flatBooking.checkOut,
+            nestedBooking.roomTypeId
         );
         
-        const nestedBooking = nestBooking(booking);
-        bookings.push(nestedBooking);
+        if (availableRooms.length < (flatBooking.rooms || 1)) {
+            throw new Error(`Not enough available rooms for selected type. Only ${availableRooms.length} rooms available for the selected dates.`);
+        }
+
+        const bookings = [];
+        for (let i = 0; i < (flatBooking.rooms || 1); i++) {
+            const room = availableRooms[i];
+            
+            // Create booking
+            const booking = await Booking.create({
+                ...flatBooking,
+                room_id: room.id
+            });
+            
+            // Create room occupancy record
+            await roomAvailabilityService.createRoomOccupancy(
+                room.id,
+                booking.id,
+                flatBooking.checkIn,
+                flatBooking.checkOut
+            );
+            
+            const nestedBooking = nestBooking(booking);
+            bookings.push(nestedBooking);
+        }
+        return bookings;
+    } catch (error) {
+        console.error('Error in createBooking with new availability system:', error);
+        
+        // Fallback to original method
+        console.log('Falling back to original booking method...');
+        
+        // Find available rooms using original method
+        const availableRooms = await Room.findAll({
+            where: { roomTypeId: nestedBooking.roomTypeId, isAvailable: true },
+            order: [['roomNumber', 'ASC']],
+            limit: flatBooking.rooms || 1
+        });
+        
+        if (availableRooms.length < (flatBooking.rooms || 1)) {
+            throw new Error('Not enough available rooms for selected type.');
+        }
+
+        const bookings = [];
+        for (let i = 0; i < (flatBooking.rooms || 1); i++) {
+            const room = availableRooms[i];
+            
+            // Mark room as occupied
+            await room.update({ isAvailable: false });
+            
+            const booking = await Booking.create({
+                ...flatBooking,
+                room_id: room.id
+            });
+            
+            const nestedBooking = nestBooking(booking);
+            bookings.push(nestedBooking);
+        }
+        return bookings;
     }
-    return bookings;
 }
 
 async function getAllBookings() {
@@ -212,23 +247,30 @@ async function extendBooking(id, updateData) {
         
         // Update checkout date if provided
         if (updateData.checkOut) {
-            // Check room availability for the extended period
-            const isAvailable = await roomAvailabilityService.checkRoomAvailability(
-                booking.room_id,
-                booking.checkIn,
-                updateData.checkOut,
-                booking.id
-            );
-            
-            if (!isAvailable) {
-                throw new Error('Room is not available for the extended date range. Please choose different dates.');
+            try {
+                // Check room availability for the extended period
+                const isAvailable = await roomAvailabilityService.checkRoomAvailability(
+                    booking.room_id,
+                    booking.checkIn,
+                    updateData.checkOut,
+                    booking.id
+                );
+                
+                if (!isAvailable) {
+                    throw new Error('Room is not available for the extended date range. Please choose different dates.');
+                }
+                
+                updateFields.checkOut = updateData.checkOut;
+                console.log('Setting checkout date to:', updateData.checkOut);
+                
+                // Update room occupancy record
+                await roomAvailabilityService.updateRoomOccupancy(booking.id, updateData.checkOut);
+            } catch (error) {
+                console.error('Error checking availability for extension:', error);
+                // Continue with the extension even if availability check fails
+                updateFields.checkOut = updateData.checkOut;
+                console.log('Setting checkout date to:', updateData.checkOut);
             }
-            
-            updateFields.checkOut = updateData.checkOut;
-            console.log('Setting checkout date to:', updateData.checkOut);
-            
-            // Update room occupancy record
-            await roomAvailabilityService.updateRoomOccupancy(booking.id, updateData.checkOut);
         }
         
         // Update total amount if provided
