@@ -5,19 +5,78 @@ const db = require('../_helpers/db');
 const Room = db.Room;
 const RoomType = db.RoomType;
 
+// Test endpoint to check database connection
+router.get('/test', async (req, res) => {
+    try {
+        console.log('Testing database connection...');
+        console.log('Room model:', !!Room);
+        console.log('RoomType model:', !!RoomType);
+        
+        const roomCount = await Room.count();
+        const roomTypeCount = await RoomType.count();
+        
+        console.log(`Room count: ${roomCount}, RoomType count: ${roomTypeCount}`);
+        
+        res.json({
+            success: true,
+            roomCount,
+            roomTypeCount,
+            models: {
+                Room: !!Room,
+                RoomType: !!RoomType
+            }
+        });
+    } catch (err) {
+        console.error('Test endpoint error:', err);
+        res.status(500).json({ 
+            success: false,
+            error: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
+    }
+});
+
 // GET all rooms
 router.get('/', async (req, res) => {
     try {
-        const rooms = await Room.findAll({
-            include: {
-                model: RoomType,
-                attributes: ['type', 'description', 'basePrice', 'reservationFeePercentage'] 
-            },
-            order: [['roomNumber', 'ASC']]
-        });
-        res.json(rooms);
+        console.log('GET /rooms - Starting to fetch rooms...');
+        
+        // First check if models exist
+        if (!Room || !RoomType) {
+            console.error('Models not found:', { Room: !!Room, RoomType: !!RoomType });
+            return res.status(500).json({ message: 'Database models not initialized' });
+        }
+        
+        try {
+            const rooms = await Room.findAll({
+                include: {
+                    model: RoomType,
+                    as: 'roomType',
+                    attributes: ['type', 'description', 'basePrice', 'reservationFeePercentage'] 
+                },
+                order: [['roomNumber', 'ASC']]
+            });
+            
+            console.log(`GET /rooms - Successfully fetched ${rooms.length} rooms with associations`);
+            res.json(rooms);
+        } catch (associationError) {
+            console.error('Association error, trying without associations:', associationError);
+            
+            // Fallback: get rooms without associations
+            const rooms = await Room.findAll({
+                order: [['roomNumber', 'ASC']]
+            });
+            
+            console.log(`GET /rooms - Successfully fetched ${rooms.length} rooms without associations`);
+            res.json(rooms);
+        }
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Error in GET /rooms:', err);
+        console.error('Error stack:', err.stack);
+        res.status(500).json({ 
+            message: err.message,
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });
 
@@ -103,6 +162,7 @@ router.get('/available/:type', async (req, res) => {
             const availableRooms = await Room.findAll({
                 include: {
                     model: RoomType,
+                    as: 'roomType',
                     where: { type: type },
                     attributes: ['type', 'description', 'basePrice', 'reservationFeePercentage']
                 },
@@ -128,6 +188,7 @@ router.get('/stats', async (req, res) => {
         const roomTypeStats = await Room.findAll({
             include: {
                 model: RoomType,
+                as: 'roomType',
                 attributes: ['type', 'basePrice', 'reservationFeePercentage']
             },
             attributes: ['isAvailable']
@@ -172,12 +233,14 @@ router.get('/:id', async (req, res) => {
         const room = await Room.findByPk(req.params.id, {
             include: {
                 model: RoomType,
+                as: 'roomType',
                 attributes: ['type', 'description', 'basePrice', 'reservationFeePercentage']
             }
         });
         if (!room) return res.status(404).json({ message: 'Room not found' });
         res.json(room);
     } catch (err) {
+        console.error('Error in GET /rooms/:id:', err);
         res.status(500).json({ message: err.message });
     }
 });
