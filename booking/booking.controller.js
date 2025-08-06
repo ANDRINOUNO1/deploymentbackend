@@ -60,7 +60,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-//PATCH /api/bookings/:id/extend - Specific endpoint for extending stays
+//PATCH /api/bookings/:id/extend
 router.patch('/:id/extend', async (req, res) => {
     try {
         console.log('Extend request received:', req.body);
@@ -69,6 +69,19 @@ router.patch('/:id/extend', async (req, res) => {
         res.json(booking);
     } catch (err) {
         console.error('Error extending booking:', err);
+        res.status(400).json({ message: err.message });
+    }
+});
+
+//PATCH /api/bookings/:id/check-in
+router.patch('/:id/check-in', async (req, res) => {
+    try {
+        console.log('Check-in request received for booking ID:', req.params.id);
+        const booking = await bookingService.checkInBooking(req.params.id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found or cannot be checked in' });
+        res.json(booking);
+    } catch (err) {
+        console.error('Error checking in booking:', err);
         res.status(400).json({ message: err.message });
     }
 });

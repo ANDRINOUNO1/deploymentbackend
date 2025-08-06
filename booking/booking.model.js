@@ -25,8 +25,10 @@ module.exports = (sequelize) => {
         cvv: { type: DataTypes.STRING },
         // Room reference
         room_id: { type: DataTypes.INTEGER, allowNull: false },
-        // Other fields
+        // Status fields
         pay_status: { type: DataTypes.BOOLEAN, allowNull: false },
+        status: { type: DataTypes.ENUM('reserved', 'checked_in', 'checked_out'), defaultValue: 'reserved' },
+        // Other fields
         created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
         updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
         requests: { type: DataTypes.STRING },

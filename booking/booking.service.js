@@ -15,7 +15,8 @@ module.exports = {
     extendBooking,
     deleteBooking,
     getBookingById,
-    getBookingByEmail
+    getBookingByEmail,
+    checkInBooking
 };
 
 // --- Mapping functions ---
@@ -44,11 +45,12 @@ function flattenBooking(nested) {
   
         room_id: nested.room_id,
        
-        pay_status: nested.pay_status || false, // Default to false (pending)
+        pay_status: nested.pay_status || false, //(for pending)
         created_at: nested.created_at || new Date(),
         updated_at: nested.updated_at || new Date(),
         requests: nested.requests || '',
-        paidamount: nested.paidamount || nested.payment?.amount || 0 // Use payment amount as default
+        paidamount: nested.paidamount || nested.payment?.amount || 0, //(for reservation amount)
+        status: nested.status || 'reserved'  //default to 'reserved'
     };
 }
 
@@ -115,7 +117,8 @@ function nestBooking(flat) {
         created_at: flat.created_at,
         updated_at: flat.updated_at,
         requests: flat.requests,
-        paidamount: flat.paidamount
+        paidamount: flat.paidamount,
+        status: flat.status || 'reserved'
     };
 }
 
@@ -296,6 +299,40 @@ async function getBookingByEmail(email) {
     });
     if (!booking) return null;
     return nestBooking(booking);
+}
+
+async function checkInBooking(id) {
+    const booking = await Booking.findByPk(id);
+    if (!booking) {
+        console.error('Booking not found with ID:', id);
+        return null;
+    }
+
+    if (booking.status !== 'reserved') {
+        console.error('Booking with ID', id, 'is not in a reserved status.');
+        return null;
+    }
+
+    try {
+        booking.status = 'checked_in';
+        booking.updated_at = new Date();
+        await booking.save();
+
+        // Update room occupancy status to active
+        const occupancy = await RoomOccupancy.findOne({
+            where: { bookingId: id, status: 'completed' }
+        });
+
+        if (occupancy) {
+            await occupancy.update({ status: 'active' });
+        }
+
+        console.log('Booking with ID', id, 'checked in successfully.');
+        return nestBooking(booking);
+    } catch (error) {
+        console.error('Error checking in booking:', error);
+        throw error;
+    }
 }
 
 module.exports.getBookingById = getBookingById;
