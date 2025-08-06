@@ -59,6 +59,7 @@ db.initialize()
         app.use('/rooms', require('./rooms/room.controller').router);
         app.use('/archives', require('./booking/archive.controller'));
         app.use('/room-availability', require('./rooms/room-availability.controller'));
+        app.use('/contact-messages', require('./contact-messages/contact-message.controller'));
 
         // --- Global error handler ---
         app.use(errorHandler);
