@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const contactMessageService = require('./contact-message.service');
-const { authorize } = require('../_middleware/authorize');
-
-// Public endpoint - Submit contact message (no auth required)
+const authorize = require('../_middleware/authorize');
 router.post('/submit', async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
 
-    // Basic validation
     if (!name || !email || !phone || !subject || !message) {
       return res.status(400).json({
         success: false,
@@ -16,7 +13,7 @@ router.post('/submit', async (req, res) => {
       });
     }
 
-    // Email validation
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -25,7 +22,7 @@ router.post('/submit', async (req, res) => {
       });
     }
 
-    // Phone validation (Philippine format)
+  
     const phoneRegex = /^09\d{9}$/;
     if (!phoneRegex.test(phone)) {
       return res.status(400).json({
@@ -56,10 +53,9 @@ router.post('/submit', async (req, res) => {
   }
 });
 
-// Admin endpoints - require authentication
+
 router.use(authorize());
 
-// Get all contact messages (with optional filters)
 router.get('/', async (req, res) => {
   try {
     const filters = {
@@ -85,7 +81,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get a single contact message by ID
+
 router.get('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -113,7 +109,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Update message status
+
 router.patch('/:id/status', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -149,7 +145,6 @@ router.patch('/:id/status', async (req, res) => {
   }
 });
 
-// Mark message as read
 router.patch('/:id/read', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -205,7 +200,6 @@ router.patch('/:id/replied', async (req, res) => {
   }
 });
 
-// Delete a contact message
 router.delete('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -232,8 +226,6 @@ router.delete('/:id', async (req, res) => {
     });
   }
 });
-
-// Get message statistics
 router.get('/stats/overview', async (req, res) => {
   try {
     const result = await contactMessageService.getMessageStats();
