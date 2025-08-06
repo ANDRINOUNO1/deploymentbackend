@@ -42,6 +42,7 @@ db.initialize = async function() {
         db.Room = require('../rooms/room.model')(sequelize, DataTypes);
         db.RoomType = require('../rooms/room-type.model')(sequelize);
         db.RoomOccupancy = require('../rooms/room-occupancy.model')(sequelize, DataTypes);
+        db.ContactMessage = require('../contact-messages/contact-message.model')(sequelize);
 
         // define relationships
         db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE', foreignKey: 'accountId' });
