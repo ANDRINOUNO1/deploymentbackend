@@ -247,7 +247,10 @@ async function extendBooking(id, updateData) {
         if (updateData.guest_phone) updateFields.guest_phone = updateData.guest_phone;
         if (updateData.checkIn) updateFields.checkIn = updateData.checkIn;
         if (updateData.roomType) updateFields.roomType = updateData.roomType;
-        if (updateData.status) updateFields.status = updateData.status;
+        
+        // Always preserve the current status - don't change it during extension
+        updateFields.status = booking.status;
+        console.log('Preserving current status:', booking.status);
         
         // Always update the updated_at timestamp
         updateFields.updated_at = new Date();
@@ -308,8 +311,9 @@ async function checkInBooking(id) {
         return null;
     }
 
-    if (booking.status !== 'reserved') {
-        console.error('Booking with ID', id, 'is not in a reserved status.');
+    // Allow check-in for any status except already checked-in or checked-out
+    if (booking.status === 'checked_in' || booking.status === 'checked_out') {
+        console.error('Booking with ID', id, 'is already checked in or checked out.');
         return null;
     }
 
