@@ -203,14 +203,14 @@ router.get('/stats', async (req, res) => {
         };
         
         roomTypeStats.forEach(room => {
-            const type = room.RoomType.type;
+            const type = room.roomType?.type || room.RoomType?.type;
             if (!stats.roomTypes[type]) {
                 stats.roomTypes[type] = {
                     total: 0,
                     available: 0,
                     occupied: 0,
-                    price: room.RoomType.basePrice,
-                    reservationFeePercentage: room.RoomType.reservationFeePercentage
+                    price: room.roomType?.basePrice || room.RoomType?.basePrice || 0,
+                    reservationFeePercentage: room.roomType?.reservationFeePercentage || room.RoomType?.reservationFeePercentage || 0
                 };
             }
             stats.roomTypes[type].total++;
