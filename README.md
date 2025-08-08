@@ -1,4 +1,4 @@
-hotel online booking main
+Hotel Online Booking Main Document 
 
 # 📁 CAPSTONE 2: Online Hotel Booking System
 
