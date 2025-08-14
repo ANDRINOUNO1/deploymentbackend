@@ -2,7 +2,7 @@
 module.exports = (sequelize, DataTypes) => {
     const attributes = {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        roomNumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+        roomNumber: { type: DataTypes.STRING, allowNull: false, unique: false },
         roomTypeId: { type: DataTypes.INTEGER, allowNull: false },
         price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
         isAvailable: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true }
@@ -54,8 +54,7 @@ module.exports = (sequelize, DataTypes) => {
 
                 for (let floor = 1; floor <= floors; floor++) {
                     for (let i = 1; i <= roomsPerFloor; i++) {
-                        const baseNumber = roomType.id * 100 + i;
-                        const roomNumber = `${baseNumber}-${floor}`;
+                        const roomNumber = `${floor}${String(i).padStart(2, '0')}`;
                         
                         rooms.push({
                             id: roomId++,
@@ -75,7 +74,7 @@ module.exports = (sequelize, DataTypes) => {
         
         for (const room of rooms) {
             await Room.findOrCreate({
-                where: { roomNumber: room.roomNumber },
+                where: { roomNumber: room.roomNumber, roomTypeId: room.roomTypeId },
                 defaults: room
             });
         }
